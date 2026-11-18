@@ -1,0 +1,1740 @@
+<?php
+session_status() === PHP_SESSION_NONE ? session_start() : null;
+
+// PROSES LOGIN
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
+    $username = trim($_POST['username'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    if ($username === 'admin' && $password === 'admin123') {
+        $_SESSION['login'] = true;
+        $_SESSION['user'] = 'Administrator SAMSAT';
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    } else {
+        $error = 'Username atau password salah!';
+    }
+}
+
+// PROSES LOGOUT
+if (isset($_GET['logout'])) {
+    unset($_SESSION['login']);
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// FORM LOGIN
+if (!isset($_SESSION['login']) || $_SESSION['login'] !== true):
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - Dashboard Realisasi Pajak Daerah 2026</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-grad-start: #070d1d;
+            --bg-grad-end: #0f1d3d;
+            --panel: rgba(23, 35, 63, 0.75);
+            --muted: #9aa9c2;
+            --line: rgba(255, 255, 255, 0.08);
+            --primary-glow: rgba(59, 130, 246, 0.4);
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
+            color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(0,0,0,0) 70%);
+            top: 10%;
+            left: 20%;
+            z-index: -1;
+        }
+
+        .login-card {
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                        0 0 30px rgba(37, 99, 235, 0.1);
+            animation: fadeInScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .icon-box {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.4));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .form-label {
+            font-size: 0.82rem;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .input-group {
+            background: #0b1329;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .input-group:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .input-group-text {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            padding-left: 15px;
+        }
+
+        .form-control {
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 12px 15px 12px 10px;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            background: transparent;
+            color: #fff;
+            box-shadow: none;
+        }
+
+        .form-control::placeholder {
+            color: #475569;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="text-center mb-4">
+        <div class="icon-box">
+            <i class="fa-solid fa-chart-pie text-primary fa-xl"></i>
+        </div>
+        <h4 class="fw-bold mb-1 text-white">Login Dashboard</h4>
+        <p class="text-muted small mb-0">Monitoring Penerimaan Pajak Daerah 2026</p>
+    </div>
+
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-danger py-2 small text-center mb-4">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i> <?= htmlspecialchars($error) ?>
+        </div>
+    <?php endif; ?>
+
+    <form method="POST">
+        <input type="hidden" name="action" value="login">
+
+        <div class="mb-3">
+            <label class="form-label text-uppercase">Username</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fa-solid fa-user-shield"></i></span>
+                <input type="text" name="username" class="form-control"
+                       placeholder="Masukkan username" required autocomplete="off">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label text-uppercase">Password</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+                <input type="password" name="password" class="form-control"
+                       placeholder="Masukkan password" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 fw-bold">
+            <i class="fa-solid fa-right-to-bracket me-2"></i> Masuk ke Dashboard
+        </button>
+    </form>
+</div>
+
+</body>
+</html>
+
+<?php
+exit;
+endif;
+
+
+// ==================================================
+// DATA UNIT PELAYANAN UPTD WILAYAH I (2026)
+// ==================================================
+
+$geraiWilI = [
+    ['Bandar Lampung', 158323632000, 250061128, 57837516951, 36.53],
+    ['Mall Kartini', 42304526942, 159508273, 19179682716, 45.34],
+    ['Kontainer', 22088269000, 62462463, 9547346822, 43.22],
+    ['SKLL BDL', 26867667149, 36850353, 12697560138, 47.26],
+    ['Mall Ladies MBK', 41096319153, 77627171, 20012005303, 48.70],
+    ['UPC Bandar Lampung', 53827496000, 139592391, 22734827352, 42.24],
+    ['Mall Chandra', 42147715840, 64851696, 17912419335, 42.50],
+    ['SKLL BDL 2', 27233340261, 58140863, 13939632036, 51.19],
+    ['Mall Pelayanan Publik', 3461723755, 15559702, 3689375952, 106.58],
+    ['Drive Thru Tanjung Betung', 9384060689, 61432137, 9487164502, 101.10],
+    ['Drive Thru Zainal Abidin', 11500000000, 71180320, 10717820410, 93.20],
+];
+
+// ==================================================
+// DATA UNIT PELAYANAN UPTD WILAYAH I (2025)
+// ==================================================
+$geraiWilI_2025 = [
+    ['Bandar Lampung', 150000000000, 240000000, 50000000000, 33.33],
+    ['Mall Kartini', 40000000000, 150000000, 18000000000, 45.00],
+    ['Kontainer', 20000000000, 60000000, 9000000000, 45.00],
+    ['SKLL BDL', 25000000000, 35000000, 12000000000, 48.00],
+    ['Mall Ladies MBK', 39000000000, 75000000, 19000000000, 48.72],
+];
+
+// ==================================================
+// DATA UNIT PELAYANAN UPTD WILAYAH I (2024)
+// ==================================================
+$geraiWilI_2024 = [
+    ['Bandar Lampung', 140000000000, 230000000, 45000000000, 32.14],
+    ['Mall Kartini', 38000000000, 140000000, 17000000000, 44.74],
+    ['Kontainer', 19000000000, 55000000, 8500000000, 44.74],
+    ['SKLL BDL', 24000000000, 33000000, 11000000000, 45.83],
+    ['Mall Ladies MBK', 37000000000, 70000000, 18000000000, 48.65],
+];
+
+
+// ==================================================
+// DATA LAPORAN BULANAN
+// ==================================================
+
+$lapBulanan = [
+    ['JANUARI', 9384060689, 1078, 678557115, 7.231],
+    ['FEBRUARI', 9384060689, 1074, 661405734, 7.048],
+    ['MARET', 9384060689, 1169, 793006247, 8.451],
+    ['APRIL', 9384060689, 1442, 932749437, 9.94],
+    ['MEI', 9384060689, 1479, 810181259, 8.634],
+    ['JUNI', 9384060689, 2013, 947597146, 10.098],
+    ['JULI', 9384060689, 2190, 1115656911, 11.889],
+    ['AGUSTUS', 9384060689, 2260, 1310261102, 13.963],
+    ['SEPTEMBER', 9384060689, 2008, 1001989246, 10.678],
+    ['OKTOBER', 9384060689, 2410, 1311498246, 13.976],
+    ['NOVEMBER', 9384060689, 717, 359111612, 3.827],
+    ['DESEMBER', 9384060689, 0, 0, 0],
+];
+
+
+
+// ==================================================
+// DATA PERBANDINGAN SAMSAT MALL CHANDRA 2025 & 2026
+// ==================================================
+$perbandinganChandra = [
+    ['JANUARI',   2220, 2011, '-9.41', 1186,  960, '-19.06', 2626634102, 1820410649, '-30.69'],
+    ['FEBRUARI',  2428, 1978, '-18.53',1055,  830, '-21.33', 2094701207, 1568092009, '-25.14'],
+    ['MARET',     2458, 1930, '-21.48',1137,  937, '-17.59', 2348069452, 2004863544, '-14.62'],
+    ['APRIL',     2289, 1908, '-16.64',1066,  976,  '-8.44', 1965892435, 1804602783,  '-8.20'],
+    ['MEI',       3225, 2188, '-32.16',1462,  962, '-34.20', 2750817090, 1886177728, '-31.43'],
+    ['JUNI',      2920, 2620, '-10.27',1318, 1057, '-19.80', 2380744924, 1744040930, '-26.74'],
+    ['JULI',      3715, 2875, '-22.61',1686, 1105, '-34.46', 3010531266, 1893816115, '-37.09'],
+    ['AGUSTUS',   2763, 2543,  '-7.96',1080, 1030,  '-4.63', 1992653058, 1817961447,  '-8.77'],
+    ['SEPTEMBER', 3113, 2270, '-27.08',1193,  951, '-20.28', 2154783610, 1599577937, '-25.77'],
+    ['OKTOBER',   3029, null, null,    1287, null, null,    2283253778, null, null],
+    ['NOVEMBER',  2489, null, null,     936, null, null,    1651489576, null, null],
+    ['DESEMBER',  2919, null, null,    1359, null, null,    2432007273, null, null],
+];
+
+function rupiahTabel($nilai) {
+    return $nilai === null ? '' : 'Rp' . number_format((float)$nilai, 2, ',', '.');
+}
+
+function tampilData($nilai) {
+    return $nilai === null ? '' : angka($nilai);
+}
+
+// ==================================================
+// DATA TARGET & REALISASI PKB 2026
+// ==================================================
+$targetRealisasiPKB = [
+    ['JANUARI',   null, null, null],
+    ['FEBRUARI',  null, null, null],
+    ['MARET',     null, null, null],
+    ['APRIL',     null, 74,   44927025],
+    ['MEI',       null, 890,  333345128],
+    ['JUNI',      null, 963,  392824725],
+    ['JULI',      null, 1972, 834471075],
+    ['AGUSTUS',   null, 1212, 703727294],
+    ['SEPTEMBER', null, 1278, 692149554],
+    ['OKTOBER',   null, 1711, 1016071171],
+    ['NOVEMBER',  null, 1238, 683320869],
+    ['DESEMBER',  null, 1417, 808002280],
+];
+
+// FORMAT ANGKA
+function angka($angka, $desimal = 0) {
+    return number_format((float)$angka, $desimal, ',', '.');
+}
+
+function persen($angka) {
+    return number_format((float)$angka, 3, ',', '.') . '%';
+}
+
+
+// MENU AKTIF
+$view = $_GET['view'] ?? 'tabel';
+
+?>
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Dashboard Realisasi Pajak Daerah 2026</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <style>
+        :root {
+            --bg:#0b1329;
+            --panel:#17233f;
+            --muted:#9aa9c2;
+            --line:rgba(255,255,255,.09);
+        }
+
+        * {
+            box-sizing:border-box;
+        }
+
+        body {
+            margin:0;
+            background:var(--bg);
+            color:#f8fafc;
+            font-family:Segoe UI,Arial,sans-serif;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position:fixed;
+            inset:0 auto 0 0;
+            width:260px;
+            padding:26px 18px;
+            background:#101a30;
+            border-right:1px solid var(--line);
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            z-index:10;
+            overflow-y:auto;
+        }
+
+        .brand {
+            font-size:1.15rem;
+            font-weight:800;
+            letter-spacing:.4px;
+        }
+
+        .brand small {
+            display:block;
+            color:var(--muted);
+            font-size:.72rem;
+            font-weight:500;
+        }
+
+        .nav-label {
+            margin:32px 10px 10px;
+            color:#70819f;
+            font-size:.7rem;
+            text-transform:uppercase;
+            letter-spacing:1px;
+        }
+
+        .side-link {
+            display:block;
+            padding:12px 14px;
+            color:#c2cde0;
+            text-decoration:none;
+            border-radius:10px;
+            margin:5px 0;
+            font-size:.88rem;
+            transition:.2s;
+        }
+
+        .side-link.active,
+        .side-link:hover {
+            color:#fff;
+            background:#2456b7;
+        }
+
+        /* KONTEN UTAMA */
+        .main {
+            margin-left:260px;
+            padding:32px;
+        }
+
+        .eyebrow {
+            color:#7da9ff;
+            font-size:.78rem;
+            font-weight:700;
+            letter-spacing:1.1px;
+            text-transform:uppercase;
+        }
+
+        .panel {
+            background:var(--panel);
+            border:1px solid var(--line);
+            border-radius:16px;
+            box-shadow:0 12px 30px rgba(0,0,0,.16);
+            padding:22px;
+            margin-top:22px;
+        }
+
+        .panel h5 {
+            font-size:1rem;
+            font-weight:750;
+        }
+
+        .table {
+            --bs-table-bg:transparent;
+            --bs-table-color:#e7edf7;
+            --bs-table-border-color:rgba(255,255,255,.09);
+            font-size:.83rem;
+        }
+
+        .table thead th {
+            color:#aebfda;
+            background:#1e3155;
+            white-space:nowrap;
+            vertical-align:middle;
+        }
+
+        .table td {
+            white-space:nowrap;
+            vertical-align:middle;
+        }
+
+        .table tfoot td {
+            color:#fff;
+            font-weight:800;
+            background:#20385f;
+        }
+
+        .muted {
+            color:var(--muted);
+        }
+
+        .info-card {
+            background:#20385f;
+            border:1px solid rgba(255,255,255,.08);
+            border-radius:12px;
+            padding:17px;
+            height:100%;
+        }
+
+        .info-card .info-title {
+            color:#aebfda;
+            font-size:.8rem;
+        }
+
+        .info-card .info-value {
+            font-size:1.5rem;
+            font-weight:800;
+            margin-top:5px;
+        }
+
+        .chart-container {
+            position:relative;
+            height:450px;
+            width:100%;
+        }
+
+        .chart-container.large {
+            height:480px;
+        }
+
+        .chandra-table {
+            min-width: 1080px;
+            font-size: .78rem;
+        }
+
+        .chandra-table thead th {
+            background: #1e3155;
+            color: #f1f5f9;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .chandra-table tbody tr:hover {
+            background: rgba(59,130,246,.08);
+        }
+
+        .chandra-table tfoot td {
+            background: #20385f;
+            color: #fff;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .chandra-table tfoot td.text-danger {
+            color: #ff6b6b !important;
+        }
+
+        @media(max-width:900px) {
+            .sidebar {
+                width:220px;
+            }
+
+            .main {
+                margin-left:220px;
+                padding:22px;
+            }
+        }
+
+        @media(max-width:650px) {
+            .sidebar {
+                position:static;
+                width:100%;
+                height:auto;
+                padding:15px;
+                display:block;
+            }
+
+            .nav-label {
+                margin-top:14px;
+            }
+
+            .main {
+                margin:0;
+                padding:16px;
+            }
+
+            .chart-container {
+                height:380px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ==================================================
+     SIDEBAR
+================================================== -->
+
+<aside class="sidebar">
+
+    <div>
+        <div class="brand">
+            <i class="fa-solid fa-chart-pie text-primary me-2"></i>
+            MONITORING PAJAK
+
+            <small>Dashboard Penerimaan Daerah 2026</small>
+        </div>
+
+        <div class="nav-label">Menu utama</div>
+
+        <a class="side-link <?= ($view === 'tabel') ? 'active' : '' ?>"
+           href="?view=tabel">
+
+            <i class="fa-solid fa-store me-2"></i>
+            Rincian Wilayah I 2026
+        </a>
+
+        <!-- TAMBAHAN MENU TAHUN 2025 -->
+        <a class="side-link <?= ($view === 'tabel_2025') ? 'active' : '' ?>"
+           href="?view=tabel_2025">
+            <i class="fa-solid fa-store me-2"></i>
+            Rincian Wilayah I 2025
+        </a>
+
+        <!-- TAMBAHAN MENU TAHUN 2024 -->
+        <a class="side-link <?= ($view === 'tabel_2024') ? 'active' : '' ?>"
+           href="?view=tabel_2024">
+            <i class="fa-solid fa-store me-2"></i>
+            Rincian Wilayah I 2024
+        </a>
+
+        <a class="side-link <?= ($view === 'grafik_2024') ? 'active' : '' ?>"
+           href="?view=grafik_2024">
+            <i class="fa-solid fa-chart-column me-2"></i>
+            Grafik Capaian Pergerai 2024
+        </a>
+
+        <a class="side-link <?= ($view === 'grafik_2025') ? 'active' : '' ?>"
+           href="?view=grafik_2025">
+            <i class="fa-solid fa-chart-column me-2"></i>
+            Grafik Capaian Pergerai 2025
+        </a>
+
+        <a class="side-link <?= ($view === 'grafik') ? 'active' : '' ?>"
+           href="?view=grafik">
+
+            <i class="fa-solid fa-chart-bar me-2"></i>
+            Grafik Capaian Pergerai 2026
+        </a>
+
+        <a class="side-link <?= ($view === 'grafik_tahunan') ? 'active' : '' ?>"
+           href="?view=grafik_tahunan">
+            <i class="fa-solid fa-chart-column me-2"></i>
+            Grafik Perbandingan Tahunan 2024–2026
+        </a>
+
+        <a class="side-link <?= ($view === 'grafik_bulanan') ? 'active' : '' ?>"
+           href="?view=grafik_bulanan">
+
+            <i class="fa-solid fa-chart-column me-2"></i>
+            Grafik Persentase Bulanan 2026
+        </a>
+
+        <a class="side-link <?= ($view === 'perbandingan_chandra') ? 'active' : '' ?>"
+           href="?view=perbandingan_chandra">
+            <i class="fa-solid fa-scale-balanced me-2"></i>
+            Perbandingan Mall Chandra 2025–2026
+        </a>
+
+        <a class="side-link <?= ($view === 'target_realisasi_pkb') ? 'active' : '' ?>"
+           href="?view=target_realisasi_pkb">
+            <i class="fa-solid fa-chart-line me-2"></i>
+            Target Realisasi PKB Lapkorpri 2026
+        </a>
+
+        <a class="side-link <?= ($view === 'lap_bulanan') ? 'active' : '' ?>"
+           href="?view=lap_bulanan">
+
+            <i class="fa-solid fa-calendar-days me-2"></i>
+            Laporan Bulanan Penerimaan PKB 2026
+        </a>
+
+        <div class="nav-label">Periode data</div>
+
+        <div class="small muted px-2">
+            02 Januari – 30 Oktober 2026
+        </div>
+    </div>
+
+    <div class="pt-3">
+        <a href="?logout=true"
+           class="side-link text-danger bg-danger bg-opacity-10 text-center">
+
+            <i class="fa-solid fa-right-from-bracket me-2"></i>
+            Logout
+        </a>
+    </div>
+
+</aside>
+
+
+<!-- ==================================================
+     KONTEN UTAMA
+================================================== -->
+
+<main class="main">
+
+    <header class="mb-4">
+        <h2 class="fw-bold mt-2 mb-1">
+            UPTD WILAYAH 1 SAMSAT BANDAR LAMPUNG
+        </h2>
+
+        <div class="muted">
+            Periode 02 Januari s.d. 30 Oktober 2026 (Perubahan)
+        </div>
+    </header>
+
+
+    <?php if ($view === 'tabel'): ?>
+
+    <!-- ==================================================
+         TABEL UTAMA (RINCIAN WILAYAH I 2026)
+    ================================================== -->
+    <section class="panel">
+        <div class="mb-3">
+            <h5 class="mb-1">Rincian Wilayah I 2026</h5>
+            <div class="muted small">Data target dan realisasi unit pelayanan UPTD Wilayah I tahun 2026.</div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>NO</th>
+                        <th>UNIT PELAYANAN</th>
+                        <th>TARGET PKB (Rp)</th>
+                        <th>UNIT KENDARAAN</th>
+                        <th>REALISASI (Rp)</th>
+                        <th>CAPAIAN (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($geraiWilI as $i => $row): ?>
+                    <tr>
+                        <td><?= $i + 1 ?></td>
+                        <td class="fw-semibold"><?= htmlspecialchars($row[0]) ?></td>
+                        <td><?= rupiahTabel($row[1]) ?></td>
+                        <td><?= tampilData($row[2]) ?></td>
+                        <td><?= rupiahTabel($row[3]) ?></td>
+                        <td class="text-info font-monospace"><?= persen($row[4]) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ==================================================
+         TABEL TAMBAHAN RINCIAN WILAYAH I 2025
+    ================================================== -->
+    <?php elseif ($view === 'tabel_2025'): ?>
+    <section class="panel">
+        <div class="mb-3">
+            <h5 class="mb-1">Rincian Wilayah I 2025</h5>
+            <div class="muted small">Data monitoring penerimaan pajak daerah tahun anggaran 2025.</div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>NO</th>
+                        <th>UNIT PELAYANAN</th>
+                        <th>TARGET PKB (Rp)</th>
+                        <th>UNIT KENDARAAN</th>
+                        <th>REALISASI (Rp)</th>
+                        <th>CAPAIAN (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($geraiWilI_2025 as $i => $row): ?>
+                    <tr>
+                        <td><?= $i + 1 ?></td>
+                        <td class="fw-semibold"><?= htmlspecialchars($row[0]) ?></td>
+                        <td><?= rupiahTabel($row[1]) ?></td>
+                        <td><?= tampilData($row[2]) ?></td>
+                        <td><?= rupiahTabel($row[3]) ?></td>
+                        <td class="text-info font-monospace"><?= persen($row[4]) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ==================================================
+         TABEL TAMBAHAN RINCIAN WILAYAH I 2024
+    ================================================== -->
+    <?php elseif ($view === 'tabel_2024'): ?>
+    <section class="panel">
+        <div class="mb-3">
+            <h5 class="mb-1">Rincian Wilayah I 2024</h5>
+            <div class="muted small">Data monitoring penerimaan pajak daerah tahun anggaran 2024.</div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>NO</th>
+                        <th>UNIT PELAYANAN</th>
+                        <th>TARGET PKB (Rp)</th>
+                        <th>UNIT KENDARAAN</th>
+                        <th>REALISASI (Rp)</th>
+                        <th>CAPAIAN (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($geraiWilI_2024 as $i => $row): ?>
+                    <tr>
+                        <td><?= $i + 1 ?></td>
+                        <td class="fw-semibold"><?= htmlspecialchars($row[0]) ?></td>
+                        <td><?= rupiahTabel($row[1]) ?></td>
+                        <td><?= tampilData($row[2]) ?></td>
+                        <td><?= rupiahTabel($row[3]) ?></td>
+                        <td class="text-info font-monospace"><?= persen($row[4]) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <?php elseif ($view === 'grafik_tahunan'): ?>
+
+<?php
+// Gabungkan nama seluruh unit pelayanan dari ketiga tahun.
+$labelsTahunan = array_values(array_unique(array_merge(
+    array_column($geraiWilI_2024, 0),
+    array_column($geraiWilI_2025, 0),
+    array_column($geraiWilI, 0)
+)));
+
+// Buat peta capaian berdasarkan nama unit agar data tiap tahun
+// tetap berada pada kategori unit yang sama.
+$buatPetaCapaian = function ($data) {
+    $hasil = [];
+    foreach ($data as $row) {
+        $hasil[$row[0]] = (float) $row[4];
+    }
+    return $hasil;
+};
+
+$peta2024 = $buatPetaCapaian($geraiWilI_2024);
+$peta2025 = $buatPetaCapaian($geraiWilI_2025);
+$peta2026 = $buatPetaCapaian($geraiWilI);
+
+// Jika suatu unit belum memiliki data pada tahun tertentu,
+// kirim null agar batangnya tidak dianggap bernilai 0%.
+$dataCapaian2024 = [];
+$dataCapaian2025 = [];
+$dataCapaian2026 = [];
+
+foreach ($labelsTahunan as $namaUnit) {
+    $dataCapaian2024[] = $peta2024[$namaUnit] ?? null;
+    $dataCapaian2025[] = $peta2025[$namaUnit] ?? null;
+    $dataCapaian2026[] = $peta2026[$namaUnit] ?? null;
+}
+?>
+
+<section class="panel">
+    <div class="mb-3">
+        <div class="eyebrow mb-2">Perbandingan Capaian Tahunan</div>
+        <h5 class="mb-1">
+            Grafik Perbandingan Capaian PKB UPTD Wilayah I Tahun 2024–2026
+        </h5>
+        <div class="muted small">
+            Perbandingan persentase capaian setiap unit pelayanan berdasarkan
+            data tahun 2024, 2025, dan 2026.
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="info-card">
+                <div class="info-title">Tahun 2024</div>
+                <div class="info-value text-info">5 Unit</div>
+                <small class="muted">Data tersedia</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <div class="info-title">Tahun 2025</div>
+                <div class="info-value text-info">5 Unit</div>
+                <small class="muted">Data tersedia</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <div class="info-title">Tahun 2026</div>
+                <div class="info-value text-info">11 Unit</div>
+                <small class="muted">Data tersedia</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-container large">
+        <canvas id="grafikTahunan"></canvas>
+    </div>
+
+    <div class="muted small mt-4">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        Grafik menampilkan capaian dalam persen. Data unit yang belum tersedia
+        pada tahun 2024 atau 2025 dibiarkan kosong agar tidak menyesatkan.
+    </div>
+</section>
+
+<script>
+    // Hindari registrasi plugin berulang jika ChartDataLabels sudah terdaftar.
+    if (!Chart.registry.plugins.get('datalabels')) {
+        Chart.register(ChartDataLabels);
+    }
+
+    const labelsTahunan = <?= json_encode(
+        $labelsTahunan,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    ) ?>;
+
+    const data2024 = <?= json_encode($dataCapaian2024) ?>;
+    const data2025 = <?= json_encode($dataCapaian2025) ?>;
+    const data2026 = <?= json_encode($dataCapaian2026) ?>;
+
+    new Chart(document.getElementById('grafikTahunan'), {
+        type: 'bar',
+        data: {
+            labels: labelsTahunan,
+            datasets: [
+                {
+                    label: 'Tahun 2024',
+                    data: data2024,
+                    backgroundColor: '#64748b',
+                    borderColor: '#94a3b8',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    maxBarThickness: 32
+                },
+                {
+                    label: 'Tahun 2025',
+                    data: data2025,
+                    backgroundColor: '#16a34a',
+                    borderColor: '#4ade80',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    maxBarThickness: 32
+                },
+                {
+                    label: 'Tahun 2026',
+                    data: data2026,
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#60a5fa',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    maxBarThickness: 32
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: { top: 28, left: 8, right: 8 }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: '#e7edf7',
+                        usePointStyle: true,
+                        padding: 18
+                    }
+                },
+                datalabels: {
+                    color: '#ffffff',
+                    anchor: 'end',
+                    align: 'top',
+                    offset: 2,
+                    clamp: true,
+                    font: {
+                        weight: 'bold',
+                        size: 10
+                    },
+                    formatter: function(value) {
+                        if (value === null || value === undefined) return '';
+                        return value.toLocaleString('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }) + '%';
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#101a30',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            if (context.raw === null || context.raw === undefined) {
+                                return context.dataset.label + ': Data tidak tersedia';
+                            }
+                            return context.dataset.label + ': ' +
+                                context.raw.toLocaleString('id-ID', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + '%';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    suggestedMax: 120,
+                    grid: {
+                        color: 'rgba(255,255,255,.08)'
+                    },
+                    ticks: {
+                        color: '#9aa9c2',
+                        callback: value => value + '%'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Capaian (%)',
+                        color: '#aebfda'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#9aa9c2',
+                        maxRotation: 35,
+                        minRotation: 0,
+                        autoSkip: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Unit Pelayanan',
+                        color: '#aebfda'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+    <?php elseif ($view === 'grafik'): ?>
+
+    <!-- ==================================================
+         GRAFIK CAPAIAN PER GERAI
+    ================================================== -->
+
+    <section class="panel">
+        <div class="mb-3">
+            <h5 class="mb-1">
+                Grafik Capaian Persentase PKB UPTD Wilayah I
+            </h5>
+
+            <div class="muted small">
+                Visualisasi persentase capaian per unit pelayanan
+                (posisi 30 Oktober 2026).
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="capaianChart"></canvas>
+        </div>
+    </section>
+
+    <script>
+        Chart.register(ChartDataLabels);
+
+        const labelsGerai = <?= json_encode(array_column($geraiWilI, 0)) ?>;
+        const dataGerai = <?= json_encode(array_column($geraiWilI, 4)) ?>;
+
+        new Chart(document.getElementById('capaianChart'), {
+            type: 'bar',
+            data: {
+                labels: labelsGerai,
+                datasets: [{
+                    label: 'Capaian PKB',
+                    data: dataGerai,
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#60a5fa',
+                    borderWidth: 1,
+                    borderRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 25 }
+                },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#ffffff',
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 4,
+                        font: { weight: 'bold', size: 11 },
+                        formatter: function(value) {
+                            return value.toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + '%';
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Capaian: ' + context.raw.toLocaleString('id-ID') + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: 120,
+                        grid: { color: 'rgba(255,255,255,.08)' },
+                        ticks: { color: '#9aa9c2', callback: value => value + '%' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#9aa9c2' }
+                    }
+                }
+            }
+        });
+    </script>
+
+
+
+    <?php elseif ($view === 'grafik_2024'): ?>
+
+    <!-- ==================================================
+         GRAFIK CAPAIAN PER GERAI TAHUN 2024
+    ================================================== -->
+
+    <section class="panel">
+        <div class="mb-3">
+            <h5 class="mb-1">
+                Grafik Capaian Persentase PKB UPTD Wilayah I Tahun 2024
+            </h5>
+            <div class="muted small">
+                Visualisasi persentase capaian per unit pelayanan berdasarkan data tahun anggaran 2024.
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="capaianChart2024"></canvas>
+        </div>
+    </section>
+
+    <script>
+        Chart.register(ChartDataLabels);
+
+        const labelsGerai2024 = <?= json_encode(array_column($geraiWilI_2024, 0)) ?>;
+        const dataGerai2024 = <?= json_encode(array_column($geraiWilI_2024, 4)) ?>;
+
+        new Chart(document.getElementById('capaianChart2024'), {
+            type: 'bar',
+            data: {
+                labels: labelsGerai2024,
+                datasets: [{
+                    label: 'Capaian PKB Tahun 2024',
+                    data: dataGerai2024,
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#60a5fa',
+                    borderWidth: 1,
+                    borderRadius: 7,
+                    maxBarThickness: 70
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 28, left: 8, right: 8 }
+                },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#ffffff',
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 4,
+                        font: { weight: 'bold', size: 12 },
+                        formatter: function(value) {
+                            return value.toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + '%';
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Capaian: ' + context.raw.toLocaleString('id-ID', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: 60,
+                        grid: { color: 'rgba(255,255,255,.08)' },
+                        ticks: {
+                            color: '#9aa9c2',
+                            callback: value => value + '%'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Capaian (%)',
+                            color: '#aebfda'
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#9aa9c2',
+                            maxRotation: 25,
+                            minRotation: 0
+                        },
+                        title: {
+                            display: true,
+                            text: 'Unit Pelayanan',
+                            color: '#aebfda'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+
+    <?php elseif ($view === 'grafik_2025'): ?>
+
+    <!-- ==================================================
+         GRAFIK CAPAIAN PER GERAI TAHUN 2025
+    ================================================== -->
+
+    <section class="panel">
+        <div class="mb-3">
+            <h5 class="mb-1">
+                Grafik Capaian Persentase PKB UPTD Wilayah I Tahun 2025
+            </h5>
+            <div class="muted small">
+                Visualisasi persentase capaian per unit pelayanan berdasarkan data tahun anggaran 2025.
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="capaianChart2025"></canvas>
+        </div>
+    </section>
+
+    <script>
+        Chart.register(ChartDataLabels);
+
+        const labelsGerai2025 = <?= json_encode(array_column($geraiWilI_2025, 0)) ?>;
+        const dataGerai2025 = <?= json_encode(array_column($geraiWilI_2025, 4)) ?>;
+
+        new Chart(document.getElementById('capaianChart2025'), {
+            type: 'bar',
+            data: {
+                labels: labelsGerai2025,
+                datasets: [{
+                    label: 'Capaian PKB Tahun 2025',
+                    data: dataGerai2025,
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#60a5fa',
+                    borderWidth: 1,
+                    borderRadius: 7,
+                    maxBarThickness: 70
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 28, left: 8, right: 8 }
+                },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#ffffff',
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 4,
+                        font: { weight: 'bold', size: 12 },
+                        formatter: function(value) {
+                            return value.toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + '%';
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Capaian: ' + context.raw.toLocaleString('id-ID', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: 60,
+                        grid: { color: 'rgba(255,255,255,.08)' },
+                        ticks: {
+                            color: '#9aa9c2',
+                            callback: value => value + '%'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Capaian (%)',
+                            color: '#aebfda'
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#9aa9c2',
+                            maxRotation: 25,
+                            minRotation: 0
+                        },
+                        title: {
+                            display: true,
+                            text: 'Unit Pelayanan',
+                            color: '#aebfda'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <?php elseif ($view === 'grafik_bulanan'): ?>
+
+    <!-- ==================================================
+         GRAFIK BARU PERSENTASE BULANAN
+    ================================================== -->
+
+    <section class="panel">
+        <div class="mb-4">
+            <div class="eyebrow mb-2">Grafik Realisasi Bulanan 2026</div>
+            <h5 class="mb-1">Grafik Persentase Realisasi Penerimaan PKB</h5>
+            <div class="muted small">
+                UPTD Wilayah I Bandar Lampung | Samsat Drivthru Lapkorpri
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-title">Total Persentase</div>
+                    <div class="info-value text-info">105,733%</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-title">Persentase Tertinggi</div>
+                    <div class="info-value text-success">13,976%</div>
+                    <small class="muted">Oktober</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-title">Persentase Terendah (Bulan Berjalan)</div>
+                    <div class="info-value text-warning">3,827%</div>
+                    <small class="muted">November</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container large">
+            <canvas id="grafikBulanan"></canvas>
+        </div>
+
+        <div class="muted small mt-4">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            Angka persentase ditampilkan langsung di atas setiap batang grafik sesuai data laporan bulanan tahun 2026.
+        </div>
+    </section>
+
+    <script>
+        Chart.register(ChartDataLabels);
+
+        const bulan = [
+            'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI',
+            'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'
+        ];
+
+        const persentase = [
+            7.231, 7.048, 8.451, 9.940, 8.634, 10.098,
+            11.889, 13.963, 10.678, 13.976, 3.827, 0
+        ];
+
+        const warnaGrafik = [
+            '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6',
+            '#3b82f6', '#16a34a', '#3b82f6', '#16a34a', '#f59e0b', '#64748b'
+        ];
+
+        new Chart(document.getElementById('grafikBulanan'), {
+            type: 'bar',
+            data: {
+                labels: bulan,
+                datasets: [{
+                    label: 'Persentase Realisasi PKB',
+                    data: persentase,
+                    backgroundColor: warnaGrafik,
+                    borderColor: warnaGrafik,
+                    borderWidth: 1,
+                    borderRadius: 7,
+                    maxBarThickness: 48
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 35, left: 10, right: 10 }
+                },
+                plugins: {
+                    datalabels: {
+                        display: true,
+                        color: '#ffffff',
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 5,
+                        font: { weight: 'bold', size: 12 },
+                        formatter: function(value) {
+                            return value.toLocaleString('id-ID', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 3
+                            }) + '%';
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        labels: { color: '#e7edf7', font: { size: 12 } }
+                    },
+                    tooltip: {
+                        backgroundColor: '#101a30',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        padding: 12,
+                        callbacks: {
+                            title: function(context) { return context[0].label; },
+                            label: function(context) {
+                                return 'Persentase Realisasi: ' + context.raw.toLocaleString('id-ID', {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 3
+                                }) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: 16,
+                        title: { display: true, text: 'Persentase (%)', color: '#aebfda' },
+                        ticks: { color: '#9aa9c2', callback: value => value + '%' },
+                        grid: { color: 'rgba(255,255,255,.08)' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Bulan', color: '#aebfda' },
+                        ticks: { color: '#9aa9c2', maxRotation: 45, minRotation: 0, autoSkip: false },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+
+
+    <?php elseif ($view === 'perbandingan_chandra'): ?>
+
+    <!-- ==================================================
+         PERBANDINGAN SAMSAT MALL CHANDRA TAHUN 2025 & 2026
+    ================================================== -->
+
+    <section class="panel">
+        <div class="text-center mb-4">
+            <div class="eyebrow mb-2">Laporan Perbandingan Tahunan</div>
+            <h5 class="fw-bold mb-2">
+                PERBANDINGAN JUMLAH KENDARAAN DAN PENERIMAAN PAJAK KENDARAAN
+                PADA SAMSAT MALL CHANDRA
+            </h5>
+            <div class="fw-bold">TAHUN PELAYANAN 2025 &amp; 2026</div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-title">Total Kendaraan R2 2025</div>
+                    <div class="info-value text-info">33.568</div>
+                    <small class="muted">Januari–Desember</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-title">Total Kendaraan R2 2026</div>
+                    <div class="info-value text-info">20.323</div>
+                    <small class="muted">Data Januari–September</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-title">Realisasi 2026</div>
+                    <div class="info-value text-success">Rp16,14 M</div>
+                    <small class="muted">Data Januari–September</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-sm align-middle text-center chandra-table mb-0">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="align-middle">NO</th>
+                        <th rowspan="2" class="align-middle">BULAN</th>
+                        <th colspan="3">R.2</th>
+                        <th colspan="3">R4</th>
+                        <th colspan="3">REALISASI</th>
+                    </tr>
+                    <tr>
+                        <th>2025</th><th>2026</th><th>%</th>
+                        <th>2025</th><th>2026</th><th>%</th>
+                        <th>2025</th><th>2026</th><th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($perbandinganChandra as $i => $d): ?>
+                    <tr>
+                        <td><?= $i + 1 ?></td>
+                        <td class="text-start fw-semibold"><?= htmlspecialchars($d[0]) ?></td>
+                        <td><?= tampilData($d[1]) ?></td>
+                        <td><?= tampilData($d[2]) ?></td>
+                        <td class="<?= $d[3] !== null ? 'text-danger' : '' ?>"><?= $d[3] !== null ? $d[3] . '%' : '' ?></td>
+                        <td><?= tampilData($d[4]) ?></td>
+                        <td><?= tampilData($d[5]) ?></td>
+                        <td class="<?= $d[6] !== null ? 'text-danger' : '' ?>"><?= $d[6] !== null ? $d[6] . '%' : '' ?></td>
+                        <td class="text-end"><?= rupiahTabel($d[7]) ?></td>
+                        <td class="text-end"><?= rupiahTabel($d[8]) ?></td>
+                        <td class="<?= $d[9] !== null ? 'text-danger' : '' ?>"><?= $d[9] !== null ? $d[9] . '%' : '' ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" class="text-center">JUMLAH</td>
+                        <td>33.568</td>
+                        <td>20.323</td>
+                        <td class="text-danger">-13.843636%</td>
+                        <td>14.765</td>
+                        <td>8.808</td>
+                        <td class="text-danger">-14.98274%</td>
+                        <td class="text-end">Rp27.691.577.771,00</td>
+                        <td class="text-end">Rp16.139.543.142,00</td>
+                        <td class="text-danger">-17.37%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="muted small mt-3">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            Data tahun 2026 pada tabel tersedia sampai dengan September. Kolom Oktober–Desember 2026 dikosongkan.
+        </div>
+    </section>
+
+    <?php elseif ($view === 'target_realisasi_pkb'): ?>
+
+    <!-- ==================================================
+         TARGET & REALISASI PKB SAMSAT DRIVTHRU LAPKORPRI
+    ================================================== -->
+
+    <section class="panel">
+        <div class="text-center mb-4">
+            <div class="eyebrow mb-2">Target &amp; Realisasi PKB</div>
+            <h5 class="fw-bold mb-1">
+                TARGET REALISASI PENERIMAAN PAJAK KENDARAAN BERMOTOR TAHUN 2026
+            </h5>
+            <div class="muted small">
+                UPTD WILAYAH 1 BANDAR LAMPUNG | UNIT PEL: SAMSAT DRIVTHRU LAPKORPRI
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center mb-0">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="align-middle">BULAN</th>
+                        <th rowspan="2" class="align-middle">TARGET PKB TAHUN 2026</th>
+                        <th colspan="2">REALISASI BULANAN PKB</th>
+                        <th rowspan="2" class="align-middle">PERSENTASE</th>
+                    </tr>
+                    <tr>
+                        <th>UNIT</th>
+                        <th>RUPIAH</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $totalUnit = 0;
+                    $totalRupiah = 0;
+                    foreach ($targetRealisasiPKB as $i => $row): 
+                        $bln = $row[0];
+                        $target = 9384060689; 
+                        $unit = $row[1];
+                        $rp = $row[2];
+                        $persenVal = $row[3];
+
+                        if ($unit !== null) $totalUnit += $unit;
+                        if ($rp !== null) $totalRupiah += $rp;
+                    ?>
+                    <tr>
+                        <td class="text-start fw-semibold"><?= $bln ?></td>
+                        <td class="text-end"><?= rupiahTabel($target) ?></td>
+                        <td><?= $unit !== null ? angka($unit) : '' ?></td>
+                        <td class="text-end"><?= rupiahTabel($rp) ?></td>
+                        <td class="text-info"><?= $persenVal !== null ? persen($persenVal) : '' ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td class="text-start">JUMLAH</td>
+                        <td class="text-end"><?= rupiahTabel(9384060689) ?></td>
+                        <td><?= angka($totalUnit) ?></td>
+                        <td class="text-end"><?= rupiahTabel($totalRupiah) ?></td>
+                        <td class="text-info">105,733%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="muted small mt-3">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            Sumber: Laporan Bulanan Samsat Drivthru Lapkorpri Tahun 2026[cite: 1].
+        </div>
+    </section>
+
+    <?php elseif ($view === 'lap_bulanan'): ?>
+
+    <!-- ==================================================
+         LAPORAN BULANAN PENERIMAAN PKB 2026
+    ================================================== -->
+
+    <section class="panel">
+        <div class="text-center mb-4">
+            <div class="eyebrow mb-2">Laporan Bulanan</div>
+            <h5 class="fw-bold mb-1">
+                LAPORAN BULANAN PENERIMAAN PAJAK KENDARAAN BERMOTOR TAHUN 2026
+            </h5>
+            <div class="muted small">
+                UPTD WILAYAH 1 BANDAR LAMPUNG | UNIT PEL: SAMSAT DRIVTHRU LAPKORPRI
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center mb-0">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="align-middle">BULAN</th>
+                        <th rowspan="2" class="align-middle">TARGET PKB TAHUN 2026</th>
+                        <th colspan="2">REALISASI BULANAN PKB</th>
+                        <th rowspan="2" class="align-middle">PERSENTASE</th>
+                    </tr>
+                    <tr>
+                        <th>UNIT</th>
+                        <th>RUPIAH</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $tUnit = 0;
+                    $tRupiah = 0;
+                    foreach ($lapBulanan as $row): 
+                        $tUnit += $row[2];
+                        $tRupiah += $row[3];
+                    ?>
+                    <tr>
+                        <td class="text-start fw-semibold"><?= $row[0] ?></td>
+                        <td class="text-end"><?= rupiahTabel($row[1]) ?></td>
+                        <td><?= angka($row[2]) ?></td>
+                        <td class="text-end"><?= rupiahTabel($row[3]) ?></td>
+                        <td class="text-info"><?= persen($row[4]) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td class="text-start">JUMLAH</td>
+                        <td class="text-end"><?= rupiahTabel(9384060689) ?></td>
+                        <td><?= angka($tUnit) ?></td>
+                        <td class="text-end"><?= rupiahTabel($tRupiah) ?></td>
+                        <td class="text-info">105,733%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="muted small mt-3">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            Sumber: Laporan Bulanan Samsat Drivthru Lapkorpri Tahun 2026[cite: 1].
+        </div>
+    </section>
+
+    <?php endif; ?>
+
+</main>
+
+</body>
+</html>
